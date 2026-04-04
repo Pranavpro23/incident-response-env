@@ -72,8 +72,8 @@ class IncidentResponseEnvironment(Environment):
     def __init__(self) -> None:
         super().__init__()
         self._task_name: str = "alert_triage"
-        self._scenario: Dict[str, Any] = {}
-        self._services: Dict[str, Dict] = {}
+        self._scenario: Dict[str, Any] = SCENARIOS["alert_triage"]
+        self._services: Dict[str, Dict] = deepcopy(self._scenario["services"])
         self._inv_actions_done: set = set()
         self._remediation_steps: List[str] = []
         self._actions_history: List[str] = []
@@ -480,7 +480,7 @@ class IncidentResponseEnvironment(Environment):
             )
         return (
             f"Restarted {svc}. No improvement — this service is not the root cause.",
-            -0.05, False,
+            0.0, False,
         )
 
     def _cmd_scale_service(self, params: Dict) -> tuple[str, float, bool]:
@@ -542,7 +542,7 @@ class IncidentResponseEnvironment(Environment):
 
         return (
             f"Rolled back {svc} — no improvement. This service is not the root cause.",
-            -0.05, False,
+            0.0, False,
         )
 
     def _cmd_resolve_incident(self, params: Dict) -> tuple[str, float, bool]:
