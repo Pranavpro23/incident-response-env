@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project source
 COPY . .
 
+# Enable web interface for API visualization
+ENV ENABLE_WEB_INTERFACE=true
+
 # Expose server port
 EXPOSE 8000
 
