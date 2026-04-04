@@ -100,34 +100,38 @@ def log_end(
 SYSTEM_PROMPT = textwrap.dedent(
     """
     You are an expert Site Reliability Engineer (SRE) responding to production incidents.
-    You will be given an incident with active alerts, and you must investigate and resolve it.
+    You receive live alerts and must investigate and resolve the incident efficiently.
 
     AVAILABLE COMMANDS AND PARAMETERS:
-    - check_alerts                            — list active alerts
-    - check_service_health  service=<name>    — health status of a service
-    - view_logs             service=<name>    — recent log entries
-    - view_metrics          service=<name>    — current metrics
-    - check_dependencies    service=<name>    — upstream/downstream services
-    - view_deployment_history service=<name>  — recent deployments
-    - classify_incident     severity=P1|P2|P3  affected_service=<name>   [task 1]
-    - identify_root_cause   cause=<cause>  component=<name>              [task 2]
-    - restart_service       service=<name>                               [task 3]
-    - rollback_deployment   service=<name>                               [task 3]
-    - resolve_incident      resolution=<description>                     [task 3]
+    - check_alerts                                          — list active alerts
+    - check_service_health    service=<name>               — health, error rate, latency, memory
+    - view_logs               service=<name>               — recent log entries
+    - view_metrics            service=<name>               — detailed metrics
+    - check_dependencies      service=<name>               — upstream/downstream graph
+    - view_deployment_history service=<name>               — recent deployments with notes
+    - classify_incident       severity=P1|P2|P3  affected_service=<name>   [task 1 ONLY]
+    - identify_root_cause     cause=<cause>  component=<name>              [task 2 ONLY]
+    - restart_service         service=<name>                               [task 3 only]
+    - rollback_deployment     service=<name>                               [task 3 only]
+    - resolve_incident        resolution=<description>                     [task 3 only]
 
-    STRATEGY:
-    1. Start by checking alerts and the most suspicious services.
-    2. Correlate logs, metrics, and deployment history.
-    3. Act on evidence — don't guess.
-    4. For task 1: use classify_incident once you know severity and primary service.
-    5. For task 2: use identify_root_cause once you have identified the root cause.
-    6. For task 3: remediate the correct service, verify recovery, then resolve.
+    STRICT RULES — violating these costs you points:
+    1. Investigate at most 3-4 services before committing to a terminal action.
+    2. NEVER call classify_incident in task 2 or 3 — it does nothing and wastes steps.
+    3. NEVER call the same command on the same service twice.
+    4. When the step counter warns you are running low, COMMIT to a terminal action immediately.
+    5. For task 3: once you identify the root cause, call rollback_deployment or restart_service RIGHT AWAY — do not keep investigating.
 
-    RESPONSE FORMAT — you must respond with ONLY valid JSON, no extra text:
+    DECISION RULES BY TASK:
+    - Task 1 (alert_triage):     check 1-2 services → classify_incident
+    - Task 2 (root_cause_analysis): check logs+metrics of suspicious service → identify_root_cause
+    - Task 3 (incident_remediation): check metrics+logs of crashing service → rollback_deployment → check_service_health (verify) → resolve_incident
+
+    RESPONSE FORMAT — respond with ONLY valid JSON, no markdown, no explanation:
     {
       "command": "<command>",
       "parameters": {"key": "value"},
-      "reasoning": "<one sentence explaining why>"
+      "reasoning": "<one sentence>"
     }
     """
 ).strip()
@@ -145,13 +149,26 @@ def build_user_prompt(
     )
     history_block = "\n".join(history[-6:]) if history else "None"
 
+    max_steps = obs.max_steps or 20
+    remaining = max_steps - step
+    if remaining <= 3:
+        urgency = f"⚠️  CRITICAL: Only {remaining} steps left. You MUST call the terminal action NOW or score 0."
+    elif step >= 4 and task == "incident_remediation":
+        urgency = f"⚠️  You have investigated enough ({step} steps used). COMMIT to rollback_deployment or restart_service NOW."
+    elif step >= 3 and task == "root_cause_analysis":
+        urgency = f"⚠️  You have enough information. Call identify_root_cause NOW."
+    elif step >= 2 and task == "alert_triage":
+        urgency = f"⚠️  You have enough information. Call classify_incident NOW."
+    else:
+        urgency = ""
+
     return textwrap.dedent(
         f"""
         TASK: {task}
         OBJECTIVE: {obs.task_objective}
 
-        CURRENT SITUATION (step {step}/{obs.max_steps}):
-        {obs.message}
+        STEP {step}/{max_steps} — {remaining} steps remaining.
+        {urgency}
 
         ACTIVE ALERTS:
         {alerts_block}
@@ -162,12 +179,12 @@ def build_user_prompt(
         LAST COMMAND OUTPUT:
         {obs.command_output or '(none — start of episode)'}
 
-        RECENT ACTIONS:
+        RECENT ACTIONS (do NOT repeat these):
         {history_block}
 
         AVAILABLE COMMANDS: {', '.join(obs.available_commands or [])}
 
-        What is your next action? Respond with JSON only.
+        Respond with JSON only. Do NOT repeat a command you already ran on the same service.
         """
     ).strip()
 

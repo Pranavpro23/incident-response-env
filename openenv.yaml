@@ -1,6 +1,26 @@
 spec_version: 1
 name: incident-response
+description: "AI agent environment for SRE on-call incident response training — triage alerts, diagnose root causes, and execute multi-step remediations across real-world production failure scenarios."
 type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+
+tasks:
+  - name: alert_triage
+    difficulty: easy
+    description: "Classify incident severity (P1/P2/P3) and identify the primary affected service from a live alert storm."
+  - name: root_cause_analysis
+    difficulty: medium
+    description: "Investigate logs, metrics, and deployment history to identify the root cause and component responsible for a production degradation."
+  - name: incident_remediation
+    difficulty: hard
+    description: "Execute a full incident response lifecycle: investigate a cascading failure, apply the correct remediation, verify service recovery, and resolve the incident."
+
+tags:
+  - openenv
+  - sre
+  - incident-response
+  - real-world
+  - devops
+  - observability

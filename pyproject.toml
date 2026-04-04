@@ -1,7 +1,10 @@
 [project]
 name = "incident-response-env"
 version = "0.1.0"
-description = "OpenEnv environment for SRE incident response training"
+description = "OpenEnv environment for SRE on-call incident response — trains AI agents to triage alerts, diagnose root causes, and remediate production failures"
+authors = [
+    { name = "Pranav Gadodia" }
+]
 requires-python = ">=3.10"
 dependencies = [
     "openenv-core>=0.2.3",
