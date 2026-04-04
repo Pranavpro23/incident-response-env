@@ -140,10 +140,10 @@ Measured with `Qwen/Qwen2.5-72B-Instruct` via HuggingFace router:
 | Task | Score | Notes |
 |---|---|---|
 | `alert_triage` | **1.000** | Correctly classified P1 + payment-service in 2 steps |
-| `root_cause_analysis` | **0.600** | Correct component (orders-db), partial cause match |
-| `incident_remediation` | **0.200** | Diagnosed correctly but exhausted steps before remediating |
+| `root_cause_analysis` | **0.550** | Correct component (orders-db), partial cause match |
+| `incident_remediation` | **0.850** | Rollback + verify + resolve in 7 steps |
 
-Task 3 is intentionally designed to challenge frontier models — it requires the agent to stop re-investigating and commit to a `rollback_deployment` action. Models that loop on investigation without acting will score low, which is expected behaviour for a *hard* task.
+Task 3 is intentionally designed to challenge frontier models — it requires the agent to stop re-investigating and commit to a `rollback_deployment` action, then verify recovery before resolving. Models that loop on investigation without acting will score low.
 
 ---
 
