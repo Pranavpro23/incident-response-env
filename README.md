@@ -1,3 +1,16 @@
+---
+title: Incident Response Env
+emoji: 🚨
+colorFrom: red
+colorTo: orange
+sdk: docker
+pinned: false
+tags:
+  - openenv
+  - sre
+  - incident-response
+---
+
 # Incident Response Environment
 
 An **OpenEnv** environment that trains AI agents to act as on-call Site Reliability Engineers (SREs) responding to production incidents. The agent investigates system alerts, diagnoses root causes, executes remediation steps, and resolves incidents — the same workflow that human engineers follow in real production systems.
