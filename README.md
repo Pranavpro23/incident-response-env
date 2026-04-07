@@ -153,7 +153,7 @@ Measured with `Qwen/Qwen2.5-72B-Instruct` via HuggingFace router:
 
 | Task | Score | Notes |
 |---|---|---|
-| `alert_triage` | **1.000** | Correctly classified P1 + payment-service in 2 steps |
+| `alert_triage` | **0.990** | Correctly classified P1 + payment-service in 2 steps |
 | `root_cause_analysis` | **0.550** | Correct component (orders-db), partial cause match |
 | `incident_remediation` | **0.850** | Rollback + verify + resolve in 7 steps |
 

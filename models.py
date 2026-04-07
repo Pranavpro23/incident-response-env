@@ -79,7 +79,7 @@ class IncidentObservation(Observation):
     )
     services_summary: Dict[str, str] = Field(
         default_factory=dict,
-        description="High-level health status of all services (HEALTHY/DEGRADED/CRITICAL/UNKNOWN)",
+        description="High-level health status of all services (HEALTHY/DEGRADED/CRITICAL/CRASHING)",
     )
 
 

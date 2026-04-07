@@ -494,10 +494,10 @@ INCIDENT_REMEDIATION_SCENARIO: Dict[str, Any] = {
     # How services recover after correct remediation
     "recovery": {
         "after_rollback_auth": {
-            "auth-service": {"health": "HEALTHY", "mem_pct": 35, "error_rate": 0.2, "restarts": 0},
+            "auth-service": {"health": "HEALTHY", "mem_pct": 35, "error_rate_pct": 0.2, "cpu_pct": 18},
         },
         "after_auth_healthy": {
-            "api-gateway": {"health": "HEALTHY", "error_rate": 0.1, "circuit_breaker": "CLOSED"},
+            "api-gateway": {"health": "HEALTHY", "error_rate_pct": 0.1, "latency_p99_ms": 85},
         },
     },
 }
