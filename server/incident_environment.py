@@ -170,6 +170,11 @@ class IncidentResponseEnvironment(Environment):
             done = True
             self._done = True
             output += f"\n\n[TIMEOUT] Maximum steps ({max_steps}) reached."
+            # Ensure timeout terminal reward is strictly positive so task score > 0
+            reward = max(reward, 0.01)
+
+        # Keep cumulative_reward strictly within (0, 1) for state reporting
+        self._cumulative_reward = min(max(self._cumulative_reward, 0.0), 0.99)
 
         return self._make_obs(output, reward=reward, done=done)
 
@@ -378,7 +383,7 @@ class IncidentResponseEnvironment(Environment):
         severity_ok = severity == gt_severity
         service_ok = service == gt_service
 
-        score = 0.0
+        score = 0.01  # minimum base: strictly above 0
         if severity_ok:
             score += 0.45
         elif severity in {"P1", "P2"} and gt_severity in {"P1", "P2"}:
@@ -389,9 +394,9 @@ class IncidentResponseEnvironment(Environment):
 
         # Efficiency bonus: correct classification with ≤ 3 investigation steps
         if severity_ok and service_ok and len(self._inv_actions_done) <= 3:
-            score = min(score + 0.10, 1.0)
+            score += 0.09  # max total: 0.01+0.45+0.45+0.09=1.00, capped below at 0.99
 
-        score = min(score, 1.0)
+        score = min(score, 0.99)  # ensure strictly below 1.0
         msg = self._grade_message(
             "classify_incident",
             {
@@ -424,7 +429,7 @@ class IncidentResponseEnvironment(Environment):
         cause_ok = cause == gt_cause
         component_ok = component == gt_component
 
-        score = 0.0
+        score = 0.01  # minimum base: strictly above 0
         if cause_ok:
             score += 0.50
         elif cause in partial_causes:
@@ -435,7 +440,7 @@ class IncidentResponseEnvironment(Environment):
         elif component in partial_components:
             score += 0.10
 
-        score = min(score, 1.0)
+        score = min(score, 0.99)  # strictly below 1
         msg = self._grade_message(
             "identify_root_cause",
             {
